@@ -169,10 +169,10 @@ def _flow_book_step2(phone: str, patient_name: str) -> str:
 
 def _flow_status(phone: str) -> str:
     """
-    Look up the patient's active token and show their queue position.
+    Check the queue status for the patient.
     """
+    # Fetch patient's token data from the sheet
     appointment = sheets.find_active_token(phone)
-
     if not appointment:
         return (
             "❌ *No active appointment found.*\n\n"
@@ -182,22 +182,33 @@ def _flow_status(phone: str) -> str:
 
     patient_token = appointment["token"]
     current_token = sheets.get_current_token()
-    all_appts     = sheets.get_all_appointments()
-    remaining     = sum(1 for a in all_appts if a['status'] == 'Waiting' and current_token < a['token'] < patient_token)
+    all_appts = sheets.get_all_appointments()
 
-    if remaining <= 0:
+    # Case 1: The patient's turn has already passed
+    if current_token > patient_token:
         return (
-            f"🔔 *It's your turn now!*\n\n"
-            f"🎫 Your Token: *#{patient_token}*\n\n"
-            f"Please proceed to the reception desk. 🏥"
+            "✅ *Your checkup is complete!*\n\n"
+            "Thank you for visiting ABC Clinic. If you need to see the doctor again, "
+            "send *1* to book a new appointment down the line."
         )
 
+    # Case 2: It is currently their turn
+    if current_token == patient_token:
+        return (
+            "🔔 *It's your turn now!*\n\n"
+            "🎫 Your Token: *#" + str(patient_token) + "*\n"
+            "Please proceed to the reception desk. 🏥"
+        )
+
+    # Case 3: They are still waiting in line
+    remaining = sum(1 for a in all_appts if a['status'] == 'Waiting' and current_token <= a['token'] < patient_token)
+    
     return (
         f"📊 *Queue Status*\n\n"
         f"🎫 Your Token: *#{patient_token}*\n"
-        f"📍 Current Token: #{current_token}\n"
+        f"🩺 Current Token: *#{current_token}*\n"
         f"⏳ Patients ahead of you: *{remaining}*\n\n"
-        "_We'll keep serving patients. Thank you for your patience!_"
+        f"_We'll keep serving patients. Thank you for your patience!_"
     )
 
 
