@@ -38,56 +38,52 @@ def handle_message(phone: str, message: str) -> str:
     Returns the reply string to send back to the patient.
     """
     msg = message.strip().lower()
-    sess = session.get_session(phone)
-    current_state = sess.get("state", STATE_IDLE)
+    session_data = session.get_session(phone)
+    current_state = session_data.get("state", STATE_IDLE)
 
     logger.info("Handling message: phone=%s state=%s msg=%r", phone, current_state, msg)
-
+    
     try:
         # - Multi-turn: waiting for patient name
-      if current_state == STATE_AWAITING_NAME:
-        # Any message in this state is treated as the patient's name
-        # UNLESS it looks like a menu command (let them escape)
-       if msg in GREET_KEYWORDS:
-            session.clear_session(phone)
-            return _flow_main_menu()
-       if msg in BOOK_KEYWORDS | STATUS_KEYWORDS | CANCEL_KEYWORDS:
-            session.clear_session(phone)
-            return handle_message(phone, message)
-        
-        return _flow_book_step2(phone, patient_name=message.strip())  
+        if current_state == STATE_AWAITING_NAME:
+            # Any message in this state is treated as the patient's name
+            # UNLESS it looks like a menu command (let them escape)
+            if msg in GREET_KEYWORDS:
+                session.clear_session(phone)
+                return _flow_main_menu()
+            if msg in BOOK_KEYWORDS | STATUS_KEYWORDS | CANCEL_KEYWORDS:
+                session.clear_session(phone)
+                return handle_message(phone, message)
+            
+            return _flow_book_step2(phone, patient_name=message.strip())
 
-        # ── Greeting → main menu ─────────────────────────────────────────────
+        # - Greeting / main menu
         if msg in GREET_KEYWORDS:
             session.clear_session(phone)
             return _flow_main_menu()
 
-        # ── Book flow step 1 ─────────────────────────────────────────────────
+        # - Book flow step 1
         if msg in BOOK_KEYWORDS:
             return _flow_book_step1(phone)
 
-        # ── Status check ─────────────────────────────────────────────────────
+        # - Status check
         if msg in STATUS_KEYWORDS:
             return _flow_status(phone)
 
-        # - Cancel -------------------------
+        # - Cancel
         if msg in CANCEL_KEYWORDS:
             return _flow_cancel(phone)
 
-        # - Admin Command ------------------
+        # - Admin Command
         if msg == 'next':
             return _flow_next(phone)
 
-        # - Unknown input ------------------
-            return _flow_invalid()
+        # - Unknown input
+        return _flow_invalid()
 
-    except Exception as exc:
-        logger.error("Unhandled error in handle_message: %s", exc, exc_info=True)
-        return (
-            "⚠️ System temporarily unavailable. Please try again later.\n"
-            "If the issue persists, please contact the clinic directly."
-        )
-
+    except Exception as e:
+        logger.error("Webhook error: %s", e, exc_info=True)
+        return "⚠️ System temporarily unavailable. Please try again in a moment."
 
 # ── Flow: Main Menu ───────────────────────────────────────────────────────────
 
