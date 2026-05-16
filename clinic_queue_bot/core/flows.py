@@ -44,18 +44,18 @@ def handle_message(phone: str, message: str) -> str:
     logger.info("Handling message: phone=%s state=%s msg=%r", phone, current_state, msg)
 
     try:
-        # ── Multi-turn: waiting for patient name ──────────────────────────────
-        if current_state == STATE_AWAITING_NAME:
-            # Any message in this state is treated as the patient's name
-            # UNLESS it looks like a menu command (let them escape)
-            if msg in GREET_KEYWORDS:
-                session.clear_session(phone)
-                return _flow_main_menu()
-            if msg in BOOK_KEYWORDS | STATUS_KEYWORDS | CANCEL_KEYWORDS:
-                session.clear_session(phone)
-                # Re-route to their chosen option
-                return handle_message(phone, message)
-            return _flow_book_step2(phone, patient_name=message.strip())
+        # - Multi-turn: waiting for patient name
+      if current_state == STATE_AWAITING_NAME:
+        # Any message in this state is treated as the patient's name
+        # UNLESS it looks like a menu command (let them escape)
+       if msg in GREET_KEYWORDS:
+            session.clear_session(phone)
+            return _flow_main_menu()
+       if msg in BOOK_KEYWORDS | STATUS_KEYWORDS | CANCEL_KEYWORDS:
+            session.clear_session(phone)
+            return handle_message(phone, message)
+        
+        return _flow_book_step2(phone, patient_name=message.strip())  
 
         # ── Greeting → main menu ─────────────────────────────────────────────
         if msg in GREET_KEYWORDS:
