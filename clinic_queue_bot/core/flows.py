@@ -227,6 +227,16 @@ def _flow_cancel(phone: str) -> str:
             "Send *hi* to go back to the main menu."
         )
 
+    patient_token = appointment["token"]
+    current_token = sheets.get_current_token()
+
+    if current_token > patient_token:
+        return (
+            "❌ *Cannot cancel.*\n\n"
+            "Your checkup is already complete!\n"
+            "Send *1* to book a new appointment."
+        )
+
     sheets.cancel_appointment(appointment["row_index"])
 
     return (
@@ -235,7 +245,6 @@ def _flow_cancel(phone: str) -> str:
         "Send *1* to book a new appointment.\n"
         "Send *hi* for the main menu."
     )
-
 
 # ── Flow: Invalid input ───────────────────────────────────────────────────────
 
