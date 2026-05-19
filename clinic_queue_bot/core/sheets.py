@@ -170,3 +170,16 @@ def set_current_token(new_token: int) -> None:
     except Exception as exc:
         logger.error("set_current_token failed: %s", exc)
         raise
+
+def get_patient_by_token(target_token: int) -> dict:
+    """
+    Searches the sheet for a specific waiting token and returns their data.
+    """
+    appointments = get_all_appointments()
+    
+    for appt in appointments:
+        # Check if the token matches AND they are still waiting
+        if appt.get('token') == target_token and appt.get('status') == 'Waiting':
+            return appt
+            
+    return None
