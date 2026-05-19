@@ -19,6 +19,7 @@ import logging
 from core import session, sheets
 from core.session import STATE_IDLE, STATE_AWAITING_NAME
 from core.config import config
+from core.whatsapp import send_whatsapp_reply
 
 logger = logging.getLogger(__name__)
 
@@ -264,6 +265,32 @@ def _flow_next(phone: str) -> str:
     current = sheets.get_current_token()
     new_current = current + 1
     sheets.set_current_token(new_current)
+    
+    # Calculate who gets the heads-up (2 spots away from the NEW current token)
+    heads_up_offset = 2 
+    target_token = new_current + heads_up_offset
+    
+    # Look them up in the sheet
+    target_patient = sheets.get_patient_by_token(target_token)
+    
+    # If they exist, push the reminder!
+    if target_patient:
+        patient_phone = target_patient.get('phone')
+        
+        # Format the reminder message
+        reminder_msg = (
+            f"🔔 *Heads up!*\n\n"
+            f"You are Token *#{target_token}*.\n"
+            f"There are only *{heads_up_offset} patients* ahead of you. "
+            f"Please start heading back to the clinic waiting area."
+        )
+        
+        # Push the message asynchronously
+        try:
+            send_whatsapp_reply(patient_phone, reminder_msg)
+        except Exception as e:
+            logger.error(f"Failed to send heads-up to {patient_phone}: {e}")
+
     return (
         f"👨‍⚕️ *Queue Updated!*\n\n"
         f"You are now serving Token: *#{new_current}*\n"
