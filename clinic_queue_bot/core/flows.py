@@ -162,7 +162,7 @@ def _flow_book_step2(phone: str, patient_name: str) -> str:
         f"📍 *Current Token:* *#{current_token}*\n"
         f"⏳ *Patients ahead of you:* *{patients_ahead}*\n\n"
         f"📱 *Track the line live here:*\n"
-        f"https://your-clinic-tracker.vercel.appnn"
+        f"https://clinic-queue-bot-production.up.railway.app/trackernn"
         "Send *2* anytime to check your live queue status.\n"
         "Send *3* to cancel your appointment."
     )
