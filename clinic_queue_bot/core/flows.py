@@ -157,10 +157,12 @@ def _flow_book_step2(phone: str, patient_name: str) -> str:
 
     return (
         f"✅ *Appointment Confirmed!*\n\n"
-        f"👤 Name: {patient_name.strip()}\n"
-        f"🎫 Your Token: *#{new_token}*\n"
-        f"📍 Current Token: #{current_token}\n"
-        f"⏳ Patients ahead of you: *{patients_ahead}*\n\n"
+        f"👤 *Name:* {patient_name.strip()}\n"
+        f"🎟️ *Your Token:* *#{new_token}*\n"
+        f"📍 *Current Token:* *#{current_token}*\n"
+        f"⏳ *Patients ahead of you:* *{patients_ahead}*\n\n"
+        f"📱 *Track the line live here:*\n"
+        f"https://your-clinic-tracker.vercel.appnn"
         "Send *2* anytime to check your live queue status.\n"
         "Send *3* to cancel your appointment."
     )
