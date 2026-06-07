@@ -118,7 +118,76 @@ def queue_dashboard():
     except Exception as exc:
         logger.error("Queue dashboard error: %s", exc)
         return jsonify({"error": str(exc)}), 500
+@app.route('/tracker', methods=['GET'])
+def live_tracker():
+    html_content = """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Patient Queue Tracker</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="bg-slate-50 min-h-screen flex flex-col items-center justify-center p-4 font-sans">
+        
+        <div class="text-center mb-8">
+            <h1 class="text-2xl font-bold text-slate-800">Patient Queue Tracker</h1>
+            <p class="text-slate-500 text-sm mt-1">Real-time clinic status</p>
+        </div>
 
+        <!-- Now Serving Card -->
+        <div class="w-full max-w-md bg-white rounded-2xl shadow-sm border border-slate-100 p-8 text-center mb-6">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4">Now Serving</p>
+            <div class="text-8xl font-bold text-blue-600 tracking-tighter" id="current-token">--</div>
+            <div class="h-1 w-16 bg-blue-500 mx-auto mt-6 rounded-full"></div>
+        </div>
+
+        <!-- Details Grid -->
+        <div class="w-full max-w-md grid grid-cols-2 gap-4">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 text-center">
+                <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2">Total Waiting</p>
+                <div class="text-4xl font-bold text-slate-800" id="total-waiting">--</div>
+                <p class="text-xs text-slate-400 mt-2">patients</p>
+            </div>
+            
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 text-center">
+                <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2">Est. Wait</p>
+                <div class="text-4xl font-bold text-slate-800" id="est-wait">--</div>
+                <p class="text-xs text-slate-400 mt-2">minutes</p>
+            </div>
+        </div>
+
+        <div class="mt-8 flex items-center justify-center gap-2 text-xs text-slate-400">
+            <span class="relative flex h-2 w-2">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+            </span>
+            Live updating every 5 seconds
+        </div>
+
+        <script>
+            function fetchQueue() {
+                // Pointing to your exact /queue endpoint
+                fetch('/queue')
+                    .then(res => res.json())
+                    .then(data => {
+                        // Using your exact waiting_count variable
+                        if(data.current_token !== undefined) {
+                            document.getElementById('current-token').innerText = '#' + data.current_token;
+                            document.getElementById('total-waiting').innerText = data.waiting_count;
+                            document.getElementById('est-wait').innerText = '~' + (data.waiting_count * 10);
+                        }
+                    })
+                    .catch(err => console.error("Error fetching queue:", err));
+            }
+            fetchQueue();
+            setInterval(fetchQueue, 5000);
+        </script>
+    </body>
+    </html>
+    """
+    return html_content
 
 # ── Run ───────────────────────────────────────────────────────────────────────
 
